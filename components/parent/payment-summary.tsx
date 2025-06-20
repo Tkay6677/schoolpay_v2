@@ -29,16 +29,16 @@ export function PaymentSummary({ students, payments }: PaymentSummaryProps) {
       <div className="grid grid-cols-2 gap-4">
         <div className="p-4 border rounded-lg">
           <p className="text-sm text-muted-foreground">Total Balance</p>
-          <p className="text-2xl font-semibold">${totalBalance.toFixed(2)}</p>
+          <p className="text-2xl font-semibold">₦{totalBalance.toFixed(2)}</p>
         </div>
         <div className="p-4 border rounded-lg">
           <p className="text-sm text-muted-foreground">Pending</p>
-          <p className="text-2xl font-semibold">${totalPending.toFixed(2)}</p>
+          <p className="text-2xl font-semibold">₦{totalPending.toFixed(2)}</p>
         </div>
       </div>
       <div className="p-4 border rounded-lg">
         <p className="text-sm text-muted-foreground">Total Paid (This Month)</p>
-        <p className="text-2xl font-semibold">${totalPaid.toFixed(2)}</p>
+        <p className="text-2xl font-semibold">₦{totalPaid.toFixed(2)}</p>
       </div>
     </div>
   );

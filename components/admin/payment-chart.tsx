@@ -11,26 +11,50 @@ import {
   Legend 
 } from 'recharts';
 import { Card } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/components/auth-provider';
+import { useToast } from '@/hooks/use-toast';
 
 export function PaymentChart() {
-  // Mock data - in a real app, this would be fetched from the database
-  const data = [
-    { month: 'Jan', daily: 150, weekly: 380, monthly: 680 },
-    { month: 'Feb', daily: 120, weekly: 420, monthly: 720 },
-    { month: 'Mar', daily: 180, weekly: 460, monthly: 820 },
-    { month: 'Apr', daily: 170, weekly: 440, monthly: 780 },
-    { month: 'May', daily: 200, weekly: 500, monthly: 900 },
-    { month: 'Jun', daily: 120, weekly: 300, monthly: 550 },
-    { month: 'Jul', daily: 80, weekly: 220, monthly: 450 },
-    { month: 'Aug', daily: 210, weekly: 520, monthly: 950 },
-    { month: 'Sep', daily: 190, weekly: 480, monthly: 850 },
-  ];
-  
+  const { token } = useAuth();
+  const { toast } = useToast();
+  const [data, setData] = useState<{ month: string; daily: number; weekly: number; monthly: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/parent/payments', { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Failed to fetch payments');
+        const payments = await res.json();
+        const monthMap: Record<string, { month: string; daily: number; weekly: number; monthly: number }> = {};
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        payments.forEach((p: any) => {
+          const date = new Date(p.date);
+          const m = monthNames[date.getMonth()];
+          if (!monthMap[m]) monthMap[m] = { month: m, daily: 0, weekly: 0, monthly: 0 };
+          if (p.paymentCategory === 'daily') monthMap[m].daily += p.amount;
+          else if (p.paymentCategory === 'weekly') monthMap[m].weekly += p.amount;
+          else if (p.paymentCategory === 'monthly') monthMap[m].monthly += p.amount;
+        });
+        const sortedData = monthNames.filter(m => monthMap[m]).map(m => monthMap[m]);
+        setData(sortedData);
+      } catch (error: any) {
+        console.error('Error fetching chart data:', error);
+        toast({ title: 'Error loading chart', description: error.message, variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (token) fetchChartData();
+  }, [token, toast]);
+
   // Format currency for tooltip
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'NGN',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
@@ -84,7 +108,7 @@ export function PaymentChart() {
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 12 }}
-          tickFormatter={(value) => `$${value}`}
+          tickFormatter={(value) => formatCurrency(value as number)}
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend 

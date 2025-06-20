@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import type { Dispatch, SetStateAction, FC } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { 
   Card, 
@@ -54,6 +55,124 @@ const COMMON_ALLERGIES = [
   { id: 'shellfish', label: 'Shellfish' },
   { id: 'wheat', label: 'Wheat' },
 ];
+
+// --- Extracted StudentForm ---
+type FormDataShape = {
+  name: string;
+  grade: string;
+  admissionNumber: string;
+  dietaryPreferences: string[];
+  allergies: string[];
+  otherAllergies: string;
+  additionalNotes: string;
+};
+
+interface StudentFormProps {
+  formData: FormDataShape;
+  setFormData: Dispatch<SetStateAction<FormDataShape>>;
+  togglePreference: (id: string, type: 'dietary' | 'allergies') => void;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
+  submitLabel: string;
+}
+
+const StudentForm: FC<StudentFormProps> = ({ formData, setFormData, togglePreference, onSubmit, submitLabel }) => (
+  <form onSubmit={onSubmit} className="space-y-6">
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Full Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="grade">Grade</Label>
+        <Input
+          id="grade"
+          value={formData.grade}
+          onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="admissionNumber">Admission Number</Label>
+        <Input
+          id="admissionNumber"
+          value={formData.admissionNumber}
+          onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Dietary Preferences</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {DIETARY_OPTIONS.map((option) => (
+            <div key={option.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`dietary-${option.id}`}
+                checked={formData.dietaryPreferences.includes(option.id)}
+                onCheckedChange={() => togglePreference(option.id, 'dietary')}
+              />
+              <label
+                htmlFor={`dietary-${option.id}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {option.label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Allergies</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {COMMON_ALLERGIES.map((allergy) => (
+            <div key={allergy.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`allergy-${allergy.id}`}
+                checked={formData.allergies.includes(allergy.id)}
+                onCheckedChange={() => togglePreference(allergy.id, 'allergies')}
+              />
+              <label
+                htmlFor={`allergy-${allergy.id}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {allergy.label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="otherAllergies">Other Allergies</Label>
+        <Input
+          id="otherAllergies"
+          value={formData.otherAllergies}
+          onChange={(e) => setFormData({ ...formData, otherAllergies: e.target.value })}
+          placeholder="List any other allergies..."
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="additionalNotes">Additional Notes</Label>
+        <Input
+          id="additionalNotes"
+          value={formData.additionalNotes}
+          onChange={(e) => setFormData({ ...formData, additionalNotes: e.target.value })}
+          placeholder="Any additional dietary notes or preferences..."
+        />
+      </div>
+    </div>
+    <DialogFooter>
+      <Button type="submit">{submitLabel}</Button>
+    </DialogFooter>
+  </form>
+);
 
 export default function StudentsPage() {
   const { user, token } = useAuth();
@@ -245,7 +364,7 @@ export default function StudentsPage() {
     setFormData({ ...formData, [field]: updated });
   };
 
-  const StudentForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => Promise<void>, submitLabel: string }) => (
+  const _UnusedStudentForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => Promise<void>, submitLabel: string }) => (
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
@@ -387,7 +506,7 @@ export default function StudentsPage() {
                 Enter the student's details and dietary preferences below
               </DialogDescription>
             </DialogHeader>
-            <StudentForm onSubmit={handleSubmit} submitLabel="Add Student" />
+            <StudentForm formData={formData} setFormData={setFormData} togglePreference={togglePreference} onSubmit={handleSubmit} submitLabel="Add Student" />
           </DialogContent>
         </Dialog>
       </div>
@@ -503,7 +622,7 @@ export default function StudentsPage() {
               Update the student's details and dietary preferences below
             </DialogDescription>
           </DialogHeader>
-          <StudentForm onSubmit={handleEdit} submitLabel="Update Student" />
+          <StudentForm formData={formData} setFormData={setFormData} togglePreference={togglePreference} onSubmit={handleEdit} submitLabel="Update Student" />
         </DialogContent>
       </Dialog>
     </div>

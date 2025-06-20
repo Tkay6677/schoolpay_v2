@@ -40,7 +40,7 @@ export default function Home() {
                         <CardDescription>September 2023</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">$85.00</div>
+                        <div className="text-2xl font-bold">₦20,000.00</div>
                         <p className="text-xs text-muted-foreground">20 school days</p>
                       </CardContent>
                     </Card>
@@ -50,7 +50,7 @@ export default function Home() {
                         <CardDescription>Sep 18 - Sep 22</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">$25.00</div>
+                        <div className="text-2xl font-bold">₦5,000.00</div>
                         <p className="text-xs text-muted-foreground">5 school days</p>
                       </CardContent>
                     </Card>

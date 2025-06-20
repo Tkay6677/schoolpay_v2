@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         amount: amount,
         currency: 'NGN',
         payment_options: 'card,banktransfer',
-        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/parent/payments/verify`,
+        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/parent/payments/verify`,
         customer: {
           email: user.email,
           name: user.name,

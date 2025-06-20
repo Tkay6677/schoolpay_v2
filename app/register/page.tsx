@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register } = useAuth();
   const { toast } = useToast();
+  const [adminCode, setAdminCode] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +36,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await register(name, email, password, role);
+      await register(name, email, password, role, adminCode);
       toast({
         title: "Registration successful",
         description: "Your account has been created successfully.",
@@ -117,6 +118,18 @@ export default function RegisterPage() {
                 </div>
               </RadioGroup>
             </div>
+            {role === 'admin' && (
+              <div className="space-y-2">
+                <Label htmlFor="adminCode">Admin Code</Label>
+                <Input
+                  id="adminCode"
+                  placeholder="Enter admin registration code"
+                  required
+                  value={adminCode}
+                  onChange={(e) => setAdminCode(e.target.value)}
+                />
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col">
             <Button type="submit" className="w-full" disabled={isSubmitting}>

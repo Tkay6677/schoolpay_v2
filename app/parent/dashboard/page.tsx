@@ -137,7 +137,7 @@ export default function ParentDashboard() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50/50">
+    <div className="min-h-[calc(100vh-4rem)]">
       <DashboardHeader username={user.name} />
       
       <div className="container py-6 animate-in fade-in duration-500">

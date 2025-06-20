@@ -40,7 +40,7 @@ export function StudentList({ students }: StudentListProps) {
             <p className="text-sm text-muted-foreground">Grade {student.grade}</p>
           </div>
           <div className="text-right">
-            <p className="font-medium">Balance: ${student.balance.toFixed(2)}</p>
+            <p className="font-medium">Balance: ₦{student.balance.toFixed(2)}</p>
             <p className="text-sm text-muted-foreground">
               {student.status === 'active' ? 'Active' : 'Inactive'}
             </p>

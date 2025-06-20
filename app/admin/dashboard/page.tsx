@@ -14,35 +14,57 @@ import { StudentStats } from '@/components/admin/student-stats';
 import { PaymentChart } from '@/components/admin/payment-chart';
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   
-  // Mock data for eligibility list
-  const [eligibleStudents, setEligibleStudents] = useState([
-    { id: '1', name: 'Alex Johnson', grade: '5', paymentDate: '2023-09-01', balance: 45.00, status: 'eligible' },
-    { id: '2', name: 'Sarah Johnson', grade: '3', paymentDate: '2023-09-05', balance: 15.50, status: 'eligible' },
-    { id: '3', name: 'Michael Davis', grade: '4', paymentDate: '2023-09-03', balance: 5.00, status: 'warning' },
-    { id: '4', name: 'Emily Wilson', grade: '2', paymentDate: '2023-08-28', balance: 0, status: 'ineligible' },
-    { id: '5', name: 'Daniel Martinez', grade: '6', paymentDate: '2023-09-07', balance: 32.50, status: 'eligible' },
-  ]);
+  const [eligibleStudents, setEligibleStudents] = useState<any[]>([]);
   
-  // Mock recent payments
-  const [recentPayments, setRecentPayments] = useState([
-    { id: '1', date: '2023-09-07', amount: 25.00, type: 'Weekly', student: 'Daniel Martinez', parent: 'Sofia Martinez', status: 'completed' },
-    { id: '2', date: '2023-09-05', amount: 25.00, type: 'Weekly', student: 'Sarah Johnson', parent: 'Robert Johnson', status: 'completed' },
-    { id: '3', date: '2023-09-03', amount: 5.00, type: 'Daily', student: 'Michael Davis', parent: 'Jennifer Davis', status: 'completed' },
-    { id: '4', date: '2023-09-01', amount: 85.00, type: 'Monthly', student: 'Alex Johnson', parent: 'Robert Johnson', status: 'completed' },
-  ]);
+  const [recentPayments, setRecentPayments] = useState<any[]>([]);
   
   useEffect(() => {
-    // Simulate API loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [studentsRes, paymentsRes] = await Promise.all([
+          fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/parent/payments', { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        if (!studentsRes.ok) throw new Error('Failed to fetch students');
+        if (!paymentsRes.ok) throw new Error('Failed to fetch payments');
+        const studentsData = await studentsRes.json();
+        const paymentsData = await paymentsRes.json();
+        setEligibleStudents(
+          studentsData.map((s: any) => ({
+            id: s._id,
+            name: s.name,
+            grade: s.grade,
+            paymentDate: s.lastPayment || s.updatedAt,
+            balance: s.balance,
+            status: s.balance >= 1000 ? 'eligible' : s.balance > 0 ? 'warning' : 'ineligible',
+          }))
+        );
+        setRecentPayments(
+          paymentsData.map((p: any) => ({
+            id: p._id,
+            date: p.date,
+            amount: p.amount,
+            type: p.type,
+            student: '',
+            parent: '',
+            status: p.status,
+          }))
+        );
+      } catch (error: any) {
+        toast({ title: 'Error loading dashboard', description: error.message, variant: 'destructive' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (token) {
+      fetchData();
+    }
+  }, [token]);
   
   if (!user || user.role !== 'admin') {
     return (
@@ -125,7 +147,22 @@ export default function AdminDashboard() {
               <div className="h-12 bg-muted animate-pulse rounded-md" />
             </div>
           ) : (
-            <LunchEligibilityList students={eligibleStudents} />
+            <LunchEligibilityList
+  students={eligibleStudents}
+  onServe={(id, rate) => {
+    fetch('/api/admin/students/serve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ studentId: id, dailyRate: rate }),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Serve failed');
+        toast({ title: 'Lunch served', description: 'Balance deducted' });
+        setEligibleStudents(prev => prev.filter(s => s.id !== id));
+      })
+      .catch(err => toast({ title: 'Error', description: err.message, variant: 'destructive' }));
+  }}
+/>
           )}
         </CardContent>
       </Card>

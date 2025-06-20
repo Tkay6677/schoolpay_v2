@@ -10,14 +10,14 @@ interface PaymentRatesProps {
 
 const DEFAULT_RATES = {
   lunch: {
-    daily: 500,
-    weekly: 2500,
-    monthly: 10000
+    daily: 1000,
+    weekly: 5000,
+    monthly: 25000
   },
   tuition: {
     daily: 0,
     weekly: 0,
-    monthly: 50000
+    monthly: 500000
   },
   transport: {
     daily: 200,

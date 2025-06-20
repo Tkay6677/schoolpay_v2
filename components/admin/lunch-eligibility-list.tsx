@@ -15,13 +15,15 @@ interface Student {
   paymentDate: string;
   balance: number;
   status: string;
+  dailyRate: number;
 }
 
 interface LunchEligibilityListProps {
   students: Student[];
-}
+  onServe?: (studentId: string, dailyRate: number) => void;
+} // onServe optional for read-only use
 
-export function LunchEligibilityList({ students }: LunchEligibilityListProps) {
+export function LunchEligibilityList({ students, onServe }: LunchEligibilityListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   
@@ -176,7 +178,17 @@ export function LunchEligibilityList({ students }: LunchEligibilityListProps) {
                   <td className="p-3 hidden md:table-cell">{formatDate(student.paymentDate)}</td>
                   <td className="p-3 hidden lg:table-cell">{formatCurrency(student.balance)}</td>
                   <td className="p-3">{renderStatus(student.status)}</td>
-                  <td className="p-3 text-right">
+                  <td className="p-3 text-right space-x-2">
+                    {onServe && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={student.status !== 'eligible'}
+                        onClick={() => onServe(student.id, student.dailyRate)}
+                      >
+                        Serve
+                      </Button>
+                    )}
                     <Link href={`/admin/students/${student.id}`}>
                       <Button variant="ghost" size="sm">Details</Button>
                     </Link>

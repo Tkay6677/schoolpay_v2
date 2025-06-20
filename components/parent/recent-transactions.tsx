@@ -79,7 +79,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             </p>
           </div>
           <div className="text-right">
-            <p className="font-medium">${transaction.amount.toFixed(2)}</p>
+            <p className="font-medium">₦{transaction.amount.toFixed(2)}</p>
             <p className="text-sm text-muted-foreground">
               {new Date(transaction.date).toLocaleDateString()}
             </p>
