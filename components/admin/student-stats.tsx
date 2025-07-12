@@ -52,9 +52,9 @@ export function StudentStats({ isLoading }: StudentStatsProps) {
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'NGN',
     }).format(amount);
   };
   
@@ -110,7 +110,7 @@ export function StudentStats({ isLoading }: StudentStatsProps) {
             <>
               <div className="text-2xl font-bold">{stats.lowBalance}</div>
               <p className="text-xs text-muted-foreground">
-                Students with balance under $5
+                Students with balance under ₦5,000
               </p>
             </>
           )}

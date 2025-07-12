@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
+import { NotificationService } from '@/lib/services/notification';
 
 // Mark this route as dynamic
 export const dynamic = 'force-dynamic';
@@ -76,6 +77,20 @@ export async function GET(request: Request) {
       }
     );
 
+    // Send success notification
+    try {
+      const student = await db.collection('students').findOne({ _id: payment.student });
+      if (student && payment.parentId) {
+        await NotificationService.notifyPaymentSuccess(
+          payment.parentId.toString(),
+          payment.amount,
+          student.name
+        );
+      }
+    } catch (notificationError) {
+      console.error('Error sending payment success notification:', notificationError);
+    }
+
     // Use absolute URLs for redirects
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const successUrl = new URL(`/parent/payments/success`, baseUrl);
@@ -85,6 +100,33 @@ export async function GET(request: Request) {
 
   } catch (error) {
     console.error('Error verifying payment:', error);
+    
+    // Send failure notification if we have payment details
+    try {
+      const url = new URL(request.url);
+      const tx_ref = url.searchParams.get('tx_ref');
+      
+      if (tx_ref) {
+        const client = await clientPromise;
+        const db = client.db();
+        
+        const payment = await db.collection('payments').findOne({
+          _id: new ObjectId(tx_ref)
+        });
+        
+        if (payment && payment.parentId) {
+          const student = await db.collection('students').findOne({ _id: payment.student });
+          await NotificationService.notifyPaymentFailed(
+            payment.parentId.toString(),
+            payment.amount,
+            student?.name || 'Student',
+            error instanceof Error ? error.message : 'Payment verification failed'
+          );
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error sending payment failure notification:', notificationError);
+    }
     
     // Use absolute URLs for redirects
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

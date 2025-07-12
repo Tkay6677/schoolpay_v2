@@ -32,74 +32,39 @@ import {
 import { Badge } from '@/components/ui/badge';
 
 export default function PaymentHistoryPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
-  
-  // Mock payment history data
-  const [payments, setPayments] = useState([
-    { 
-      id: '1', 
-      date: '2023-09-01', 
-      amount: 85.00, 
-      type: 'Monthly', 
-      student: 'Alex Johnson', 
-      status: 'completed',
-      paymentMethod: 'Visa •••• 4242',
-      transactionId: 'txn_1ABCDEFGHIJ1234'
-    },
-    { 
-      id: '2', 
-      date: '2023-09-05', 
-      amount: 25.00, 
-      type: 'Weekly', 
-      student: 'Sarah Johnson', 
-      status: 'completed',
-      paymentMethod: 'Mastercard •••• 5555',
-      transactionId: 'txn_2KLMNOPQRST5678'
-    },
-    { 
-      id: '3', 
-      date: '2023-08-01', 
-      amount: 85.00, 
-      type: 'Monthly', 
-      student: 'Alex Johnson', 
-      status: 'completed',
-      paymentMethod: 'Visa •••• 4242',
-      transactionId: 'txn_3UVWXYZABCD9012'
-    },
-    { 
-      id: '4', 
-      date: '2023-08-05', 
-      amount: 25.00, 
-      type: 'Weekly', 
-      student: 'Sarah Johnson', 
-      status: 'completed',
-      paymentMethod: 'Mastercard •••• 5555',
-      transactionId: 'txn_4EFGHIJKLMN3456'
-    },
-    { 
-      id: '5', 
-      date: '2023-09-12', 
-      amount: 25.00, 
-      type: 'Weekly', 
-      student: 'Alex Johnson', 
-      status: 'pending',
-      paymentMethod: 'Visa •••• 4242',
-      transactionId: 'txn_5OPQRSTUVWX7890'
-    },
-  ]);
-  
+  const [payments, setPayments] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    // Simulate loading state
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchData = async () => {
+      if (!user || !token) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [paymentsRes, studentsRes] = await Promise.all([
+          fetch('/api/parent/payments', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/parent/students', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        const paymentsData = await paymentsRes.json();
+        const studentsData = await studentsRes.json();
+        if (!paymentsRes.ok) throw new Error(paymentsData.error);
+        if (!studentsRes.ok) throw new Error(studentsData.error);
+        setPayments(paymentsData);
+        setStudents(studentsData);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load payment history');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [user, token]);
   
   // Format date
   const formatDate = (dateString: string) => {
@@ -113,24 +78,30 @@ export default function PaymentHistoryPage() {
   
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'NGN',
     }).format(amount);
+  };
+
+  // Get student name by ID
+  const getStudentName = (studentId: string) => {
+    const student = students.find((s) => s._id === studentId);
+    return student ? student.name : 'Unknown';
   };
   
   // Filter payments based on search, status, and date
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = payment.student.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          payment.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredPayments = payments.filter((payment) => {
+    const matchesSearch = getStudentName(payment.student).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.transactionId || '').toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
-    
+
     let matchesDate = true;
     const paymentDate = new Date(payment.date);
     const currentDate = new Date();
-    
+
     if (dateFilter === 'last30') {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(currentDate.getDate() - 30);
@@ -140,10 +111,10 @@ export default function PaymentHistoryPage() {
       ninetyDaysAgo.setDate(currentDate.getDate() - 90);
       matchesDate = paymentDate >= ninetyDaysAgo;
     } else if (dateFilter === 'thisMonth') {
-      matchesDate = paymentDate.getMonth() === currentDate.getMonth() && 
-                    paymentDate.getFullYear() === currentDate.getFullYear();
+      matchesDate = paymentDate.getMonth() === currentDate.getMonth() &&
+        paymentDate.getFullYear() === currentDate.getFullYear();
     }
-    
+
     return matchesSearch && matchesStatus && matchesDate;
   });
   
@@ -247,6 +218,10 @@ export default function PaymentHistoryPage() {
               <div className="h-12 bg-muted animate-pulse rounded-md" />
               <div className="h-12 bg-muted animate-pulse rounded-md" />
             </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              <p>{error}</p>
+            </div>
           ) : filteredPayments.length === 0 ? (
             <div className="text-center py-8">
               <CircleDollarSign className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
@@ -259,25 +234,23 @@ export default function PaymentHistoryPage() {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Student</TableHead>
-                    <TableHead>Plan</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Amount</TableHead>
+                    {/* <TableHead>Payment Method</TableHead> */}
                     <TableHead>Status</TableHead>
-                    <TableHead className="hidden md:table-cell">Payment Method</TableHead>
-                    <TableHead className="hidden lg:table-cell">Transaction ID</TableHead>
+                    <TableHead>Transaction ID</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPayments.map((payment) => (
-                    <TableRow key={payment.id}>
+                    <TableRow key={payment._id}>
                       <TableCell>{formatDate(payment.date)}</TableCell>
-                      <TableCell>{payment.student}</TableCell>
+                      <TableCell>{getStudentName(payment.student)}</TableCell>
                       <TableCell>{payment.type}</TableCell>
                       <TableCell>{formatCurrency(payment.amount)}</TableCell>
+                      {/* <TableCell>{payment.paymentMethod || '-'}</TableCell> */}
                       <TableCell>{renderStatus(payment.status)}</TableCell>
-                      <TableCell className="hidden md:table-cell">{payment.paymentMethod}</TableCell>
-                      <TableCell className="hidden lg:table-cell text-muted-foreground">
-                        <span className="font-mono text-xs">{payment.transactionId}</span>
-                      </TableCell>
+                      <TableCell>{payment.transactionId || '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { verifyAuth } from '@/lib/auth';
+import { NotificationService } from '@/lib/services/notification';
 
 export async function POST(req: Request) {
   try {
@@ -32,6 +33,20 @@ export async function POST(req: Request) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Send notification to parent
+    try {
+      const student = await db.collection('students').findOne({ _id: new ObjectId(studentId) });
+      if (student && student.parentId) {
+        await NotificationService.notifyLunchServed(
+          student.parentId.toString(),
+          student.name,
+          dailyRate
+        );
+      }
+    } catch (notificationError) {
+      console.error('Error sending lunch served notification:', notificationError);
+    }
 
     return NextResponse.json({ message: 'Lunch served', orderId: orderRes.insertedId });
   } catch (error: any) {

@@ -22,7 +22,7 @@ export function UpcomingPayments({ students, payments }: UpcomingPaymentsProps) 
               <p className="text-sm text-muted-foreground">{payment.description}</p>
             </div>
             <div className="text-right">
-              <p className="font-medium">₦{payment.amount.toFixed(2)}</p>
+              <p className="font-medium">₦{payment.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               <p className="text-sm text-muted-foreground">
                 Due: {new Date(payment.date).toLocaleDateString()}
               </p>

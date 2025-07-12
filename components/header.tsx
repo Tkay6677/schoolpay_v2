@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth-provider';
 import { ModeToggle } from '@/components/mode-toggle';
+import { NotificationBell } from '@/components/notification-bell';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, X, ShoppingBag, UserCircle } from 'lucide-react';
 
@@ -61,6 +62,9 @@ export function Header() {
                         <Link href="/parent/students" onClick={() => setIsOpen(false)}>
                           <Button variant="ghost" className="w-full justify-start">My Students</Button>
                         </Link>
+                        <Link href="/parent/support" onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start">Support</Button>
+                        </Link>
                         <Button variant="ghost" className="w-full justify-start" onClick={() => { logout(); setIsOpen(false); }}>
                           Logout
                         </Button>
@@ -78,6 +82,9 @@ export function Header() {
                         </Link>
                         <Link href="/admin/lunch-eligibility" onClick={() => setIsOpen(false)}>
                           <Button variant="ghost" className="w-full justify-start">Lunch Eligibility</Button>
+                        </Link>
+                        <Link href="/admin/support" onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start">Support</Button>
                         </Link>
                         <Button variant="ghost" className="w-full justify-start" onClick={() => { logout(); setIsOpen(false); }}>
                           Logout
@@ -118,6 +125,9 @@ export function Header() {
               <Link href="/parent/students" className={`text-sm font-medium ${isActive('/parent/students') ? 'text-primary' : 'text-muted-foreground'} transition-colors hover:text-primary`}>
                 My Students
               </Link>
+              <Link href="/parent/support" className={`text-sm font-medium ${isActive('/parent/support') ? 'text-primary' : 'text-muted-foreground'} transition-colors hover:text-primary`}>
+                Support
+              </Link>
             </>
           ) : (
             <>
@@ -133,10 +143,14 @@ export function Header() {
               <Link href="/admin/lunch-eligibility" className={`text-sm font-medium ${isActive('/admin/lunch-eligibility') ? 'text-primary' : 'text-muted-foreground'} transition-colors hover:text-primary`}>
                 Lunch Eligibility
               </Link>
+              <Link href="/admin/support" className={`text-sm font-medium ${isActive('/admin/support') ? 'text-primary' : 'text-muted-foreground'} transition-colors hover:text-primary`}>
+                Support
+              </Link>
             </>
           )}
         </nav>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <ModeToggle />
           {!user ? (
             <div className="hidden lg:flex gap-2">

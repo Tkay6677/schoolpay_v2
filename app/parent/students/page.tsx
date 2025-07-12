@@ -561,7 +561,7 @@ export default function StudentsPage() {
                       Admission Number: {student.admissionNumber}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Balance: ${student.balance.toFixed(2)}
+                      Balance: ₦{student.balance.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Status: {student.status}

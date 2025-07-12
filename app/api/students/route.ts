@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { verifyAuth } from '@/lib/auth';
+import { NotificationService } from '@/lib/services/notification';
 
 export async function GET(req: Request) {
   try {
@@ -80,6 +81,32 @@ export async function POST(req: Request) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Send notification to all admins about new student
+    try {
+      const admins = await db.collection('users')
+        .find({ role: 'admin' })
+        .project({ _id: 1 })
+        .toArray();
+      
+      const adminIds = admins.map(admin => admin._id.toString());
+      
+      if (adminIds.length > 0) {
+        await NotificationService.createMultipleNotifications(
+          adminIds.map(adminId => ({
+            recipientId: new ObjectId(adminId),
+            recipientType: 'admin' as const,
+            type: 'student' as const,
+            title: 'New Student Added',
+            message: `Student "${name}" (Grade ${grade}) has been added to the system.`,
+            priority: 'medium' as const,
+            isRead: false
+          }))
+        );
+      }
+    } catch (notificationError) {
+      console.error('Error sending student creation notification:', notificationError);
+    }
 
     return NextResponse.json(
       { message: 'Student created successfully', studentId: result.insertedId },
