@@ -558,10 +558,9 @@ SchoolPay is ready for production deployment and can significantly improve the s
 
 ## 📞 Contact Information
 
-**Project Repository**: [GitHub Repository URL]  
-**Documentation**: [Documentation URL]  
-**Support**: [Support Email]  
-**Demo**: [Live Demo URL]  
+**Project Repository**: https://github.com/Tkay6677/schoolpay_v2/  
+**Support**: ebitokoni96@gmail.com  
+**Demo**: schoolpay-v2.vercel.app  
 
 ---
 
