@@ -560,7 +560,7 @@ SchoolPay is ready for production deployment and can significantly improve the s
 
 **Project Repository**: https://github.com/Tkay6677/schoolpay_v2/  
 **Support**: ebitokoni96@gmail.com  
-**Demo**: schoolpay-v2.vercel.app  
+**Demo**: https://schoolpay-v2.vercel.app/  
 
 ---
 
